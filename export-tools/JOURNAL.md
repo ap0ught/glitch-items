@@ -155,15 +155,58 @@ segment list (name/start_frame/frames/sheet), and icon_segment.
 - item.json shape: stage/fps/scale/bg_color/total_frames/icon_segment/
   segments[{name,start_frame,frames,sheet,frames_dir}].
 
+## 2026-10-13, session 5 — batch 2 v2, tests, repo commit
+
+- **sheetpack gained a per-sheet pixel cap**: MAX_MP = 150e6 (under
+  Pillow's 179 MP load limit). Segments that exceed it split into
+  `sheet_0.png, sheet_1.png, ...`; `sheet.json` now carries a `sheets[]`
+  list (file, cols, rows, frame_range, per-frame entries) and
+  `item.json` records `"sheets": [...]` per segment. Rube (1001 frames,
+  the biggest item) lands at 2 sheets: [0..755] 28x27 grid + [756..1000]
+  28x9 — both load fine.
+- **Batch 2 re-render (scale 4, --keep-raw): 12/12 OK**
+  (batch2.log). Segments: apple 5, plank 6 (label `splank` wins over
+  scene `emote_animation` at frame 5), woodworker 22, frying_pan 7
+  (`1`/`transition_in`/`animation`/`transition_out`/`iconic`/
+  `broken_iconic`/`broken` — exactly the server's tool_base states),
+  emotional_bear 16, fox 10, yoga_frog 15, flamingo 16, rube 1,
+  butterfly hair clip 1, door_key_9 1, yeti 1.
+- **enrich.py: 12/12 batch-2 items matched server stems, all 12 got
+  their official 40x40 icon.** QA contact sheet (batch2_qa.png) clean;
+  fox_key_check.png: raw green 8e/b2/98 stage -> keyed frame matches the
+  official icon, no green fringing (decontam + border-flood both work).
+- **qa_sheets.py bug caught by the QA run itself**: `cell()` took
+  `dirname()` of the item.json dir before resolving `<seg>/frames/`, so
+  every lookup landed one level up -> FileNotFoundError on the first
+  item. Fix: use `_dir` directly.
+- **Test suite committed: 26 tests, all passing** (tests/run_all.sh,
+  needs venv python for numpy/scipy):
+  - test_scenes: byte-exact tag-86 fixtures (apple 22B / fox 84B /
+    woodworker 254B captured from swfdump -d) + VL-integer cases.
+  - test_segment_merge: real items pinned (frying-pan hybrid, label-wins
+    tie, tiling invariant = no gaps/overlaps, sum == total).
+  - test_sheetpack: grid math, centering (mixed content sizes),
+    transparent-frame placeholder, 10000 px width wrap, MP multi-sheet
+    split (monkeypatched MAX_MP/MAX_DIM).
+  - test_bgkey: border-connectivity (enclosed white survives),
+    near-white ring keyed, `--bg` green, all-bg frame -> empty.
+- **All code committed to the repo** (per user: "all code, test cases
+  and temp scripts need to be committed back into the repo"):
+  ap0ught/glitch-items branch **export-tools**, commits a4bdfc1
+  (25 files: pipeline, keyer, packer, chunker, server parser/enrichment,
+  QA, superseded v1 runner, experiments/, tests/, data/ TSVs, journal,
+  swftools-build.patch on base jdapena/swftools@4126f6f) + 3e1cef5
+  (qa_sheets dirname fix). Repo copies have env-overridable paths
+  (SWFDUMP, GLITCH_ITEMS_ROOT, RUFFLE_EXPORTER, PIPELINE_PYTHON, TSV
+  paths); the /tmp working copies stay byte-identical to what produced
+  the outputs (provenance). Server thumbs (1173 PNGs) deliberately NOT
+  committed — regenerable via serveritems.py; .gitignore guards
+  __pycache__/chunks/server-thumbs.
+
 ## Open questions
 
-- [ ] Batch 2 QA: do green-bg items (fox etc.) key cleanly after the
-      decontam pass? (fox_qa.png showed GREEN = raw pre-key frames; batch 2
-      output will confirm.)
-- [ ] rube (1001f, stage 88x138) single-segment sheet size: if content
-      fills the stage, ~207 MP at 4x — OVER Pillow's 179 MP load limit.
-      Batch 2 shows the real content size; if too big, add a ~150 MP
-      split-cap to sheetpack (sheet_0/sheet_1/... + json list).
+- [x] Batch 2 QA green-bg keying — clean (fox_key_check.png).
+- [x] rube sheet size — resolved with the 150 MP split cap (2 sheets).
 - [ ] Full run: 2,651 items / 4,790 sheets at scale 4 on /tmp (NO
       --keep-raw — disk), 4 parallel pipeline chunks via fullrun.py;
-      then package (tree + zip) onto /home.
+      then package (tree + zip) onto /home. Awaiting go-ahead.
