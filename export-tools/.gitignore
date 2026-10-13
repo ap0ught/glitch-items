@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+chunks/
+server-thumbs/
