@@ -34,8 +34,7 @@ def checker(w, h, sq=8):
 
 
 def cell(info):
-    base = os.path.dirname(info["path"]) if "path" in info else \
-        os.path.dirname(info["_dir"])
+    base = info["_dir"]
     segs = info["segments"]
     icon_name = info.get("icon_segment")
     icon_seg = next((s for s in segs if s["name"] == icon_name), segs[0])
