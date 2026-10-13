@@ -22,6 +22,9 @@ committed here - they are built out-of-tree (see "Full run").
 | `serveritems.py` | parse glitch-GameServerJS item configs + official 40x40 thumbs -> `data/server-items.tsv` |
 | `enrich.py` | merge server data (label/description/tags/position/asset_url/official icon) into `item.json` |
 | `qa_sheets.py` | QA contact sheet over an export root |
+| `qa_sample.py` | pick a targeted ~30-item visual-QA sample (longest animations, rare non-white bgs, seeded spread) |
+| `verify.py` | audit a finished export against the tables: timeline tiling, frame counts, sheet.json/sheet PNG consistency (exit 0 = clean) |
+| `package.py` | bundle a finished export into `<dest>/glitch-items-export/` + `.zip` (manifest + README + meta tables) |
 | `run_batch.sh` | **superseded** v1 flat runner (kept as history of batch 1) |
 | `tests/` | runnable test suite (`tests/run_all.sh`) |
 | `experiments/` | superseded exploratory parsers (kept for provenance) |
@@ -100,8 +103,16 @@ export-tools/fullrun.py /path/export/full 4 --workers 4
 # server-data enrichment (needs data/server-items.tsv + server thumbs dir)
 SERVER_THUMBS=/path/server-thumbs export-tools/enrich.py /path/export/full
 
-# QA contact sheet over an export root
-export-tools/qa_sheets.py /path/export/full /path/qa.png
+# audit a finished export (run this before packaging; exit 0 = clean)
+export-tools/verify.py /path/export/full \
+    --expected-items 2651 --expected-segments 4790
+
+# visual sample: pick ~30 items, render a contact sheet
+export-tools/qa_sample.py /path/export/full /tmp/qa-stage
+export-tools/qa_sheets.py /tmp/qa-stage /path/qa_sample.png
+
+# package the deliverable (tree + zip) onto real disk
+export-tools/package.py /path/export/full /home/user/Deliverable
 
 # regenerate the data tables (from the repo root)
 SWFDUMP=... export-tools/scenes.py export-tools/data/scenes.tsv
