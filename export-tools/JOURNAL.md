@@ -203,10 +203,28 @@ segment list (name/start_frame/frames/sheet), and icon_segment.
   committed — regenerable via serveritems.py; .gitignore guards
   __pycache__/chunks/server-thumbs.
 
+## 2026-10-14 — FULL RUN COMPLETE
+
+- `fullrun.py /tmp/opencode/export/full 4 --workers 4` (no --keep-raw):
+  4 chunks (662/663/662/664 items, ~5,682 frames each), **2651/2651 OK,
+  zero non-OK lines** in all chunk logs (no FAIL_EXPORT / WARN_FRAMES /
+  KEYFAIL).
+- **verify.py on the full tree: items=2651 segments=4790
+  frames=22729, 0 errors 0 warns, 1.63 GB** — matches the pre-run
+  inventory exactly (2,651 SWFs / 22,729 frames / 4,790 segments).
+- enrich.py: **1178 items matched server stems, 1126 with official
+  40x40 icons**.
+- qa_sample.py (30 items: longest animations, top-3 non-white bgs,
+  seeded spread across furniture/achievements/shrines/peat/etc.):
+  contact sheet clean — no keying residue, enclosed regions intact,
+  fade frames semi-transparent as intended (letter blocks).
+- Delivered: `/home/cmayfield/Documents/Default
+  Project/glitch-items-export/` (items + meta tables + manifest.json +
+  README) and `glitch-items-export.zip` (single archive, all files
+  integrity-checked).
+
 ## Open questions
 
 - [x] Batch 2 QA green-bg keying — clean (fox_key_check.png).
 - [x] rube sheet size — resolved with the 150 MP split cap (2 sheets).
-- [ ] Full run: 2,651 items / 4,790 sheets at scale 4 on /tmp (NO
-      --keep-raw — disk), 4 parallel pipeline chunks via fullrun.py;
-      then package (tree + zip) onto /home. Awaiting go-ahead.
+- [x] Full run — complete 2026-10-14, verified, enriched, packaged.
